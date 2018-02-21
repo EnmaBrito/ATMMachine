@@ -1,0 +1,225 @@
+/*
+Author: Enmanuel Brito
+Date: 11/23/2017
+Purpose: Simulate an ATM Machine using JAVA
+
+*/
+import java.awt.EventQueue;
+
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+
+import java.awt.Font;
+import javax.swing.SwingConstants;
+import javax.swing.JSeparator;
+import javax.swing.JTextField;
+import javax.swing.JPasswordField;
+import javax.swing.JButton;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
+import javax.swing.JFormattedTextField;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+
+public class MainScreen {
+
+	private JFrame frame;
+	private JTextField Username;
+	private JPasswordField Password;
+	private static  Connection connection = null;
+	// User Array or List of users value
+	
+	private String[] UserArray = new String[999];
+	private String[] PasswordArray = new String[999];
+		
+
+	/**
+	 * Launch the application.
+	 */
+	public static void main(String[] args) {
+		EventQueue.invokeLater(new Runnable() {
+			public void run() {
+				try {
+					MainScreen window = new MainScreen();
+					window.frame.setVisible(true);
+					
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+	}
+
+	/**
+	 * Create the application.
+	 */
+	public MainScreen() {
+		initialize();
+		getDBInformation();
+		getUser();
+	}
+	
+	public static Connection returnConnection() {
+		return connection;
+		
+	}
+	public void getUser() {
+		
+		// Create JDBC Statement
+		 Statement statement;
+		try {
+			statement = connection.createStatement();
+			
+			 // Execute UserQuery and Information (DATA) out
+			 
+			 ResultSet resultSet = statement.executeQuery("SELECT UserInfo.Username, UserInfo.Password FROM UserInfo"); // Select columns from the table
+			 
+			 //Print Usernames and Passwords
+			 
+			 int index  = 0; // take the user 
+			 while (resultSet.next()) {
+			 //System.out.println(resultSet.getString(1) + "," + resultSet.getString(2));
+			 UserArray[index] = resultSet.getString(1);	
+			 PasswordArray[index] = resultSet.getString(2);
+			 index++;
+			 }
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+
+	}
+	//Contain the database
+	public void getDBInformation() {
+		//Variables 
+			
+				try {
+					Class.forName("net.ucanaccess.jdbc.UcanaccessDriver");
+				}
+				catch (ClassNotFoundException cnfex) {
+					System.out.println("Error JDBC class not found");
+				}
+				
+				System.out.println("Loaded JDBC Driver Successfuly");
+				
+				// Opening the DB
+				try {
+					String MyDatabase = "C:\\Users\\brito\\eclipse-workspace\\AtmMachineFinalProject\\LiBriBank.accdb"; // Location of the database
+					String MyDatabaseURL = "jdbc:ucanaccess://" + MyDatabase;
+					
+					// Create connection to database
+					
+					connection = DriverManager.getConnection(MyDatabaseURL);	
+					
+	
+				}
+				catch (SQLException sqlex) {
+					
+					System.out.println("Accessing database fail");
+					sqlex.printStackTrace();
+				}
+				
+				
+//				finally {
+//					try {
+//						if (null != connection) {
+//							resultSet.close();
+//							statement.close();
+//							connection.close();
+//						}
+//					}
+//					catch (SQLException sqlex) {
+//						sqlex.printStackTrace();
+//					}
+//				}
+//		
+//		
+	}
+	
+	// Contain the database
+	/**
+	 * Initialize the contents of the frame.
+	 */
+	private void initialize() {
+		frame = new JFrame();
+		frame.setBounds(100, 100, 800, 600);
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.getContentPane().setLayout(null);
+		
+		JLabel lblAtmMachine = new JLabel("LiBri ATM Machine");
+		lblAtmMachine.setHorizontalAlignment(SwingConstants.CENTER);
+		lblAtmMachine.setFont(new Font("Tahoma", Font.BOLD | Font.ITALIC, 55));
+		lblAtmMachine.setBounds(12, 13, 758, 90);
+		frame.getContentPane().add(lblAtmMachine);
+		
+		JSeparator separator = new JSeparator();
+		separator.setBounds(12, 101, 823, 2);
+		frame.getContentPane().add(separator);
+		
+		JLabel lblUsername = new JLabel("Username");
+		lblUsername.setFont(new Font("Tahoma", Font.BOLD, 30));
+		lblUsername.setBounds(101, 181, 208, 46);
+		frame.getContentPane().add(lblUsername);
+		
+		JLabel lblPassword = new JLabel("Password");
+		lblPassword.setFont(new Font("Tahoma", Font.BOLD, 30));
+		lblPassword.setBounds(101, 282, 208, 46);
+		frame.getContentPane().add(lblPassword);
+		
+		Username = new JTextField();
+		Username.setBounds(345, 181, 296, 46);
+		frame.getContentPane().add(Username);
+		Username.setColumns(10);
+		
+		Password = new JPasswordField();
+		Password.setBounds(345, 282, 296, 46);
+		frame.getContentPane().add(Password);
+		
+		JButton btnClear = new JButton("Clear");
+		btnClear.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				
+				Username.setText(null);
+				Password.setText(null);
+				
+			}
+		});
+		btnClear.setBounds(101, 369, 216, 46);
+		frame.getContentPane().add(btnClear);
+		
+		JButton btnLogIn = new JButton("Log in");
+		btnLogIn.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				
+				String User=Username.getText();		
+				String Pass=Password.getText();
+				
+
+				boolean CorrectLogin = false; // Declaring the CorrectLogin to false, because it hasnt check if the user and password match
+				
+				for (int i = 0; i < UserArray.length;  i++) {
+					
+					//System.out.println("Button pressed, Usernames: " + UserArray[i] + "," + PasswordArray[i]);
+					if (User.equals(UserArray[i]) && Pass.equals(PasswordArray[i]))
+					{
+						CorrectLogin = true; // if the user and password match it will be true
+						WelcomeScreen.setName(UserArray[i]); // Passing the user to the next screen
+						WelcomeScreen.main(null);
+						frame.dispose(); // Close the main screen
+					}			
+				}
+					if (CorrectLogin == false) { // if the CorrectLogin stay false i would display an error message
+						JOptionPane.showMessageDialog(frame, "Username or Password incorrect"); // Error message				
+					}
+					
+			}
+		});
+		btnLogIn.setBounds(425, 369, 216, 46);
+		frame.getContentPane().add(btnLogIn);
+	}
+}
